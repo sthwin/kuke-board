@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.4.0
+    container_name: kuke-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kukedb
+      MYSQL_USER: kuke
+      MYSQL_PASSWORD: kuke
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
