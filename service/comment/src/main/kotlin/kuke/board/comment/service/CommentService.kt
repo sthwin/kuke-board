@@ -3,6 +3,7 @@ package kuke.board.comment.service
 import kuke.board.comment.entity.Comment
 import kuke.board.comment.repository.CommentRepository
 import kuke.board.comment.service.request.CommentCreateRequest
+import kuke.board.comment.service.response.CommentPageResponse
 import kuke.board.comment.service.response.CommentResponse
 import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
@@ -78,6 +79,51 @@ class CommentService(
                 .filter { it.deleted }
                 .filter { hasChildren(it).not() }
                 .ifPresent { delete(it) }
+        }
+    }
+
+    fun readAll(
+        articleId: Long,
+        page: Long,
+        pageSize: Long
+    ): CommentPageResponse {
+        return CommentPageResponse(
+            comments = commentRepository.findAll(
+                articleId = articleId,
+                offset = (page - 1) * pageSize,
+                limit = pageSize
+            ).map { it.toCommentResponse() },
+            commentCount = commentRepository.count(
+                articleId = articleId,
+                limit = PageLimitCalculator.calculatePageLimit(
+                    page = page,
+                    pageSize = pageSize,
+                    movablePageCount = 10
+                )
+            )
+        )
+    }
+
+    fun readAll(
+        articleId: Long,
+        lastParentCommentId: Long?,
+        lastCommentId: Long?,
+        pageSize: Long
+    ): List<CommentResponse> {
+        return if (lastParentCommentId == null || lastCommentId == null) {
+            commentRepository.findAllInfiniteScroll(
+                articleId = articleId,
+                limit = pageSize
+            )
+        } else {
+            commentRepository.findAllInfiniteScroll(
+                articleId = articleId,
+                lastParentCommentId = lastParentCommentId,
+                lastCommentId = lastCommentId,
+                limit = pageSize
+            )
+        }.map {
+            it.toCommentResponse()
         }
     }
 }
