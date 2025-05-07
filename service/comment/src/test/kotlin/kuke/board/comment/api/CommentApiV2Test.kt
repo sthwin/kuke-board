@@ -3,6 +3,7 @@ package kuke.board.comment.api
 import kuke.board.comment.service.request.CommentCreateRequest
 import kuke.board.comment.service.request.CommentCreateRequestV2
 import kuke.board.comment.service.response.CommentPageResponse
+import kuke.board.comment.service.response.CommentPageResponseV2
 import kuke.board.comment.service.response.CommentResponse
 import kuke.board.comment.service.response.CommentResponseV2
 import org.springframework.boot.test.context.SpringBootTest
@@ -80,4 +81,58 @@ class CommentApiV2Test {
             .retrieve()
             .body<Unit>()
     }
+
+    @Test
+    fun readAll() {
+        val response = restClient.get()
+            .uri("/v2/comments?articleId=1&pageSize=10&page=1")
+            .retrieve()
+            .body<CommentPageResponseV2>()
+
+        println("response.commentCount:${response?.commentCount}")
+        response?.comments?.forEach {
+            println("commentId:${it.commentId}")
+        }
+    }
+
+//    commentId:178102657915314176
+//    commentId:178102658024366101
+//    commentId:178102658024366108
+//    commentId:178102658028560429
+//    commentId:178102658032754691
+//    commentId:178102658032754705
+//    commentId:178102658032754713
+//    commentId:178102658032754717
+//    commentId:178102658032754723
+//    commentId:178102658032754728
+
+    @Test
+    fun readAllInfiniteScroll() {
+        val response1 = restClient.get()
+            .uri("/v2/comments/infinite-scroll?articleId=1&pageSize=5")
+            .retrieve()
+            .body<List<CommentResponseV2>>()
+
+        println("first page")
+        response1?.forEach {
+            println("commentId:${it.commentId}")
+        }
+
+
+        val lastPath = response1?.last()?.path
+        if (lastPath == null) return
+
+        val response2 = restClient.get()
+            .uri("/v2/comments/infinite-scroll?articleId=1&pageSize=5&lastPath=${lastPath}")
+            .retrieve()
+            .body<List<CommentResponseV2>>()
+
+
+        println("second page")
+        response2?.forEach {
+            println("commentId:${it.commentId}")
+        }
+    }
+
+
 }

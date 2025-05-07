@@ -5,6 +5,8 @@ import kuke.board.comment.entity.CommentPath
 import kuke.board.comment.entity.CommentV2
 import kuke.board.comment.repository.CommentRepositoryV2
 import kuke.board.comment.service.request.CommentCreateRequestV2
+import kuke.board.comment.service.response.CommentPageResponse
+import kuke.board.comment.service.response.CommentPageResponseV2
 import kuke.board.comment.service.response.CommentResponseV2
 import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
@@ -79,6 +81,43 @@ class CommentServiceV2(
                 .filter { hasChildren(it).not() }
                 .ifPresent { delete(it) }
         }
+    }
+
+    fun readAll(
+        articleId: Long,
+        page: Long,
+        pageSize: Long,
+    ): CommentPageResponseV2 {
+        return CommentPageResponseV2(
+            comments = commentRepositoryV2.findAll(
+                articleId = articleId,
+                offset = (page - 1) * pageSize,
+                limit = pageSize
+            ).map { it.toCommentResponseV2() },
+            commentCount = commentRepositoryV2.count(
+                articleId = articleId,
+                limit = PageLimitCalculator.calculatePageLimit(page, pageSize, 10)
+            )
+        )
+    }
+
+    fun readAllInfiniteScroll(
+        articleId: Long,
+        lastPath: String?,
+        pageSize: Long,
+    ): List<CommentResponseV2> {
+        return if (lastPath == null) {
+            commentRepositoryV2.findAllInfiniteScroll(
+                articleId = articleId,
+                limit = pageSize
+            )
+        } else {
+            commentRepositoryV2.findAllInfiniteScroll(
+                articleId = articleId,
+                lastPath = lastPath,
+                limit = pageSize
+            )
+        }.map { it.toCommentResponseV2() }
     }
 }
 
