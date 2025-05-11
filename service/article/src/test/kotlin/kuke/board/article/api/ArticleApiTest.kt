@@ -107,4 +107,33 @@ class ArticleApiTest {
             println(it)
         }
     }
+
+    @Test
+    fun countTest() {
+        val response = create(
+            ArticleCreateRequest(
+                title = "hi",
+                content = "my content",
+                boardId = 2,
+                writerId = 1
+            )
+        )
+
+        val count1 = restClient.get()
+            .uri("/v1/articles/boards/${response.boardId}/count")
+            .retrieve()
+            .body<Long>()
+        println("count1=$count1")
+
+        restClient.delete()
+            .uri("/v1/articles/${response.articleId}")
+            .retrieve()
+            .body<Unit>()
+
+        val count2 = restClient.get()
+            .uri("/v1/articles/boards/${response.boardId}/count")
+            .retrieve()
+            .body<Long>()
+        println("count1=$count2")
+    }
 }

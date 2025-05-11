@@ -135,4 +135,32 @@ class CommentApiV2Test {
     }
 
 
+    @Test
+    fun countTest() {
+        val response = create(
+            CommentCreateRequestV2(
+                articleId = 2,
+                content = "my comment1",
+                parentPath = null,
+                writerId = 1
+            )
+        )
+
+        val count1 = restClient.get()
+            .uri("/v2/comments/articles/${response.articleId}/count")
+            .retrieve()
+            .body<Long>()
+        println("count1=$count1")
+
+        restClient.delete()
+            .uri("/v2/comments/{commentId}", response.commentId)
+            .retrieve()
+            .body<Unit>()
+
+        val count2 = restClient.get()
+            .uri("/v2/comments/articles/${response.articleId}/count")
+            .retrieve()
+            .body<Long>()
+        println("count2=$count2")
+    }
 }

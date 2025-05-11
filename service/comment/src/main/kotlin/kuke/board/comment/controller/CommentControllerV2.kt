@@ -53,4 +53,11 @@ class CommentControllerV2(
             pageSize = pageSize,
         )
     }
+
+    @GetMapping("/v2/comments/articles/{articleId}/count")
+    fun count(
+        @PathVariable articleId: Long
+    ): Long {
+        return commentServiceV2.count(articleId)
+    }
 }
