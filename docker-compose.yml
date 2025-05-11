@@ -13,6 +13,11 @@ services:
       MYSQL_PASSWORD: kuke
     volumes:
       - mysql_data:/var/lib/mysql
+  redis:
+    image: redis:7.4.3-alpine
+    container_name: kuke-board-redis
+    ports:
+      - "6380:6379"
 
 volumes:
   mysql_data:
