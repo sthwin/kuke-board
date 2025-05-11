@@ -1,8 +1,10 @@
 package kuke.board.comment.service
 
+import kuke.board.comment.entity.ArticleCommentCount
 import kuke.board.comment.entity.Comment
 import kuke.board.comment.entity.CommentPath
 import kuke.board.comment.entity.CommentV2
+import kuke.board.comment.repository.ArticleCommentCountRepository
 import kuke.board.comment.repository.CommentRepositoryV2
 import kuke.board.comment.service.request.CommentCreateRequestV2
 import kuke.board.comment.service.response.CommentPageResponse
@@ -11,10 +13,12 @@ import kuke.board.comment.service.response.CommentResponseV2
 import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class CommentServiceV2(
-    val commentRepositoryV2: CommentRepositoryV2
+    val commentRepositoryV2: CommentRepositoryV2,
+    val articleCommentCountRepository: ArticleCommentCountRepository,
 ) {
     val snowflake = Snowflake()
 
@@ -22,7 +26,7 @@ class CommentServiceV2(
     fun create(request: CommentCreateRequestV2): CommentResponseV2 {
         val parent = findParent(request)
         val parentCommentPath = parent?.commentPath ?: CommentPath.of("")
-        return commentRepositoryV2.save(
+        val comment = commentRepositoryV2.save(
             CommentV2.of(
                 commentId = snowflake.nextId(),
                 content = request.content,
@@ -36,6 +40,18 @@ class CommentServiceV2(
                 )
             )
         ).toCommentResponseV2()
+
+        val result = articleCommentCountRepository.increase(request.articleId)
+        if (result == 0) {
+            articleCommentCountRepository.save(
+                ArticleCommentCount.init(
+                    articleId = request.articleId,
+                    commentCount = 1L
+                )
+            )
+        }
+
+        return comment
     }
 
     private fun findParent(request: CommentCreateRequestV2): CommentV2? {
@@ -75,6 +91,7 @@ class CommentServiceV2(
 
     private fun delete(comment: CommentV2) {
         commentRepositoryV2.delete(comment)
+        articleCommentCountRepository.decrease(comment.articleId)
         if (comment.root.not()) {
             commentRepositoryV2.findByPath(comment.commentPath.parentPath)
                 .filter { it.deleted }
@@ -118,6 +135,11 @@ class CommentServiceV2(
                 limit = pageSize
             )
         }.map { it.toCommentResponseV2() }
+    }
+
+    fun count(articleId: Long): Long {
+        return articleCommentCountRepository.findById(articleId)
+            .getOrNull()?.commentCount ?: 0
     }
 }
 

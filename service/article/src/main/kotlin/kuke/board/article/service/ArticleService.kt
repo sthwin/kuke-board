@@ -1,7 +1,9 @@
 package kuke.board.article.service
 
 import kuke.board.article.entity.Article
+import kuke.board.article.entity.BoardArticleCount
 import kuke.board.article.repository.ArticleRepository
+import kuke.board.article.repository.BoardArticleCountRepository
 import kuke.board.article.service.request.ArticleCreateRequest
 import kuke.board.article.service.request.ArticleUpdateRequest
 import kuke.board.article.service.response.ArticlePageResponse
@@ -9,10 +11,12 @@ import kuke.board.article.service.response.ArticleResponse
 import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class ArticleService(
-    val articleRepository: ArticleRepository
+    val articleRepository: ArticleRepository,
+    val boardArticleCountRepository: BoardArticleCountRepository,
 ) {
     val snowflake = Snowflake()
 
@@ -25,6 +29,17 @@ class ArticleService(
             boardId = request.boardId,
             writerId = request.writerId
         )
+
+        val result = boardArticleCountRepository.increase(request.boardId)
+        if (result == 0) {
+            boardArticleCountRepository.save(
+                BoardArticleCount.init(
+                    boardId = request.boardId,
+                    articleCount = 1L
+                )
+            )
+        }
+
         return ArticleResponse.of(articleRepository.save(article))
     }
 
@@ -42,7 +57,9 @@ class ArticleService(
 
     @Transactional
     fun delete(articleId: Long) {
-        articleRepository.deleteById(articleId)
+        val article = articleRepository.findById(articleId).orElseThrow()
+        articleRepository.delete(article)
+        boardArticleCountRepository.decrease(article.boardId)
     }
 
     fun readAll(boardId: Long, page: Long, pageSize: Long): ArticlePageResponse {
@@ -84,5 +101,10 @@ class ArticleService(
         }.map {
             ArticleResponse.of(it)
         }
+    }
+
+    fun count(boardId: Long): Long {
+        return boardArticleCountRepository.findById(boardId)
+            .getOrNull()?.articleCount ?: 0
     }
 }
