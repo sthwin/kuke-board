@@ -23,7 +23,7 @@ class ViewApiTest(
 
         val executorService: ExecutorService = Executors.newFixedThreadPool(100)
 
-        val articleId = 3L
+        val articleId = 4L
         val userId = 1L
 
         runBlocking(executorService.asCoroutineDispatcher()) {
