@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kuke.board.article.entity.Article
-import kuke.board.common.snowflake.Snowflake
+import kuke.board.common.dataserializer.Snowflake
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestConstructor
 import org.springframework.transaction.support.TransactionTemplate
