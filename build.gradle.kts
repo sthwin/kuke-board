@@ -33,6 +33,7 @@ subprojects {
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
+        implementation("ch.qos.logback:logback-classic")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.junit.platform:junit-platform-launcher")
     }

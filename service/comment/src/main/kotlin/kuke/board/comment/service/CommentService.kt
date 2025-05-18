@@ -5,7 +5,7 @@ import kuke.board.comment.repository.CommentRepository
 import kuke.board.comment.service.request.CommentCreateRequest
 import kuke.board.comment.service.response.CommentPageResponse
 import kuke.board.comment.service.response.CommentResponse
-import kuke.board.common.snowflake.Snowflake
+import kuke.board.common.dataserializer.Snowflake
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
