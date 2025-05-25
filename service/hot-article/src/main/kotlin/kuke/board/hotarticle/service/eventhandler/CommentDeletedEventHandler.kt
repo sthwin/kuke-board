@@ -22,7 +22,7 @@ class CommentDeletedEventHandler(
         )
     }
 
-    override fun supports(eventType: Event<CommentDeletedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.COMMENT_DELETED == eventType.type
     }
 

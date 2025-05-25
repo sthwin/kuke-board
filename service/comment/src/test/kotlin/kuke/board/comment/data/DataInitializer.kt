@@ -6,7 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kuke.board.comment.entity.Comment
-import kuke.board.common.dataserializer.Snowflake
+import kuke.board.common.snowflake.Snowflake
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestConstructor
 import org.springframework.transaction.support.TransactionTemplate

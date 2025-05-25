@@ -1,0 +1,14 @@
+{
+  "eventId": 184721186232410112,
+  "type": "ARTICLE_CREATED",
+  "payload": {
+    "articleId": 184721186211950592,
+    "title": "hi",
+    "content": "my content",
+    "boardId": 1,
+    "writerId": 1,
+    "createdAt": "2025-05-25T02:36:02.746755",
+    "modifiedAt": "2025-05-25T02:36:02.746771",
+    "boardArticleCount": 7
+  }
+}

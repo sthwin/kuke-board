@@ -8,7 +8,11 @@ import kuke.board.comment.repository.CommentRepositoryV2
 import kuke.board.comment.service.request.CommentCreateRequestV2
 import kuke.board.comment.service.response.CommentPageResponseV2
 import kuke.board.comment.service.response.CommentResponseV2
-import kuke.board.common.dataserializer.Snowflake
+import kuke.board.common.event.EventType
+import kuke.board.common.event.payload.CommentCreatedEventPayload
+import kuke.board.common.event.payload.CommentDeletedEventPayload
+import kuke.board.common.outboxmessagerelay.OutboxEventPublisher
+import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import kotlin.jvm.optionals.getOrNull
@@ -17,6 +21,7 @@ import kotlin.jvm.optionals.getOrNull
 class CommentServiceV2(
     val commentRepositoryV2: CommentRepositoryV2,
     val articleCommentCountRepository: ArticleCommentCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher,
 ) {
     val snowflake = Snowflake()
 
@@ -49,6 +54,20 @@ class CommentServiceV2(
             )
         }
 
+        outboxEventPublisher.publish(
+            eventType = EventType.COMMENT_CREATED,
+            payload = CommentCreatedEventPayload(
+                commentId = comment.commentId,
+                content = comment.content,
+                articleId = comment.articleId,
+                writerId = comment.writerId,
+                deleted = comment.deleted,
+                createdAt = comment.createdAt,
+                articleCommentCount = count(comment.articleId)
+            ),
+            shardKey = comment.articleId
+        )
+
         return comment
     }
 
@@ -77,7 +96,22 @@ class CommentServiceV2(
                 } else {
                     delete(comment)
                 }
+
+                outboxEventPublisher.publish(
+                    eventType = EventType.COMMENT_DELETED,
+                    payload = CommentDeletedEventPayload(
+                        commentId = comment.commentId,
+                        content = comment.content,
+                        articleId = comment.articleId,
+                        writerId = comment.writerId,
+                        deleted = comment.deleted,
+                        createdAt = comment.createdAt,
+                        articleCommentCount = count(comment.articleId)
+                    ),
+                    shardKey = comment.articleId
+                )
             }
+
     }
 
     private fun hasChildren(comment: CommentV2): Boolean {

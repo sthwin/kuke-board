@@ -23,7 +23,7 @@ class ArticleLikedEventHandler(
         }
     }
 
-    override fun supports(eventType: Event<ArticleLikedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.ARTICLE_LIKED == eventType.type
     }
 

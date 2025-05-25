@@ -8,7 +8,7 @@ data class Event<T : EventPayload>(
     val payload: T,
 ) {
     companion object {
-        fun of(eventId: Long, type: EventType, payload: EventPayload): Event<EventPayload> {
+        fun <T : EventPayload> of(eventId: Long, type: EventType, payload: T): Event<T> {
             return Event(
                 eventId = eventId,
                 type = type,
@@ -16,12 +16,26 @@ data class Event<T : EventPayload>(
             )
         }
 
-        inline fun <reified T : EventPayload> fromJson(json: String): Event<T> {
-            return DataSerializer.deserialize<Event<T>>(json)
+        fun fromJson(json: String): Event<EventPayload> {
+            val eventRaw = DataSerializer.deserialize<EventRaw>(json)
+            return Event(
+                eventId = eventRaw.eventId,
+                type = eventRaw.type,
+                payload = DataSerializer.deserialize(
+                    data = eventRaw.payload,
+                    clazz = eventRaw.type.payloadClass.java
+                )
+            )
         }
     }
 
     fun toJson(): String {
         return DataSerializer.serialize(this)
     }
+
+    data class EventRaw(
+        val eventId: Long,
+        val type: EventType,
+        val payload: Any,
+    )
 }

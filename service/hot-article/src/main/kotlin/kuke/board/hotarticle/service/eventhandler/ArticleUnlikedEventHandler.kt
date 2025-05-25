@@ -23,7 +23,7 @@ class ArticleUnlikedEventHandler(
         }
     }
 
-    override fun supports(eventType: Event<ArticleUnlikedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.ARTICLE_UNLIKED == eventType.type
     }
 

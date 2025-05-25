@@ -42,16 +42,24 @@ object DataSerializer {
      * @return 역직렬화된 객체
      * @throws RuntimeException 역직렬화 실패 시
      */
-    inline fun <reified T : Any> deserialize(data: String): T =
+    inline fun <reified T> deserialize(data: String): T =
         runCatching {
             objectMapper.readValue<T>(data)
         }.onFailure {
             logger.error("[deserialize] Failed to deserialize: data=$data, type=${T::class.java}", it)
         }.getOrThrow()
 
+    fun <T> deserialize(data: Any, clazz: Class<T>) =
+        runCatching {
+            objectMapper.convertValue(data, clazz) as T
+        }.onFailure {
+            logger.error("[deserialize] Failed to deserialize: data=$data, type=${clazz.name}", it)
+        }.getOrThrow()
+
     private fun createObjectMapper() = ObjectMapper().apply {
         registerModule(JavaTimeModule())
         registerModule(kotlinModule())
+
         disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)

@@ -2,11 +2,7 @@ package kuke.board.like.controller
 
 import kuke.board.like.service.ArticleLikeService
 import kuke.board.like.service.response.ArticleLikeResponse
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 @RestController
@@ -34,7 +30,7 @@ class ArticleLikeController(
         @PathVariable articleId: Long,
         @PathVariable userId: Long
     ) {
-        articleLikeService.likePessimistickLock1(articleId, userId)
+        articleLikeService.likePessimisticLock1(articleId, userId)
     }
 
     @DeleteMapping("/v1/article-likes/articles/{articleId}/users/{userId}/pessimistic-lock-1")
@@ -66,7 +62,7 @@ class ArticleLikeController(
         @PathVariable articleId: Long,
         @PathVariable userId: Long
     ) {
-        articleLikeService.likePessimistickLock1(articleId, userId)
+        articleLikeService.likePessimisticLock1(articleId, userId)
     }
 
     @DeleteMapping("/v1/article-likes/articles/{articleId}/users/{userId}/optimistic-lock")

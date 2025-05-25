@@ -22,7 +22,7 @@ class CommentCreatedEventHandler(
         )
     }
 
-    override fun supports(eventType: Event<CommentCreatedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.COMMENT_CREATED == eventType.type
     }
 

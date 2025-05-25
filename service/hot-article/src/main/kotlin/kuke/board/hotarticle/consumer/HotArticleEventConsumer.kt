@@ -1,7 +1,6 @@
 package kuke.board.hotarticle.consumer
 
 import kuke.board.common.event.Event
-import kuke.board.common.event.EventPayload
 import kuke.board.common.event.Topic
 import kuke.board.hotarticle.service.HotArticleService
 import org.slf4j.Logger
@@ -27,7 +26,7 @@ class HotArticleEventConsumer(
     )
     fun listen(message: String, ack: Acknowledgment) {
         logger.info("[HotArticleEventConsumer.listen] received message={}", message)
-        Event.fromJson<EventPayload>(message).let {
+        Event.fromJson(message).let {
             hotArticleService.handleEvent(it)
             ack.acknowledge()
         }
