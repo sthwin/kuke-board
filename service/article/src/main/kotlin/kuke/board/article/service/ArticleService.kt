@@ -8,7 +8,12 @@ import kuke.board.article.service.request.ArticleCreateRequest
 import kuke.board.article.service.request.ArticleUpdateRequest
 import kuke.board.article.service.response.ArticlePageResponse
 import kuke.board.article.service.response.ArticleResponse
-import kuke.board.common.dataserializer.Snowflake
+import kuke.board.common.event.EventType
+import kuke.board.common.event.payload.ArticleCreatedEventPayload
+import kuke.board.common.event.payload.ArticleDeletedEventPayload
+import kuke.board.common.event.payload.ArticleUpdatedEventPayload
+import kuke.board.common.outboxmessagerelay.OutboxEventPublisher
+import kuke.board.common.snowflake.Snowflake
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import kotlin.jvm.optionals.getOrNull
@@ -17,6 +22,7 @@ import kotlin.jvm.optionals.getOrNull
 class ArticleService(
     val articleRepository: ArticleRepository,
     val boardArticleCountRepository: BoardArticleCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher
 ) {
     val snowflake = Snowflake()
 
@@ -40,6 +46,21 @@ class ArticleService(
             )
         }
 
+        outboxEventPublisher.publish(
+            eventType = EventType.ARTICLE_CREATED,
+            payload = ArticleCreatedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+                boardArticleCount = count(article.boardId)
+            ),
+            shardKey = article.boardId
+        )
+
         return ArticleResponse.of(articleRepository.save(article))
     }
 
@@ -47,6 +68,21 @@ class ArticleService(
     fun update(articleId: Long, request: ArticleUpdateRequest): ArticleResponse {
         val article = articleRepository.findById(articleId).orElseThrow()
         article.update(request.title, request.content)
+
+        outboxEventPublisher.publish(
+            eventType = EventType.ARTICLE_UPDATED,
+            payload = ArticleUpdatedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+            ),
+            shardKey = article.boardId
+        )
+
         return ArticleResponse.of(article)
     }
 
@@ -60,6 +96,20 @@ class ArticleService(
         val article = articleRepository.findById(articleId).orElseThrow()
         articleRepository.delete(article)
         boardArticleCountRepository.decrease(article.boardId)
+        outboxEventPublisher.publish(
+            eventType = EventType.ARTICLE_DELETED,
+            payload = ArticleDeletedEventPayload(
+                articleId = article.articleId,
+                title = article.title,
+                content = article.content,
+                boardId = article.boardId,
+                writerId = article.writerId,
+                createdAt = article.createdAt,
+                modifiedAt = article.modifiedAt,
+                boardArticleCount = count(article.boardId)
+            ),
+            shardKey = article.boardId
+        )
     }
 
     fun readAll(boardId: Long, page: Long, pageSize: Long): ArticlePageResponse {

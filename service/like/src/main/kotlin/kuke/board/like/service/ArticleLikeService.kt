@@ -1,6 +1,10 @@
 package kuke.board.like.service
 
-import kuke.board.common.dataserializer.Snowflake
+import kuke.board.common.event.EventType
+import kuke.board.common.event.payload.ArticleLikedEventPayload
+import kuke.board.common.event.payload.ArticleUnlikedEventPayload
+import kuke.board.common.outboxmessagerelay.OutboxEventPublisher
+import kuke.board.common.snowflake.Snowflake
 import kuke.board.like.entity.ArticleLike
 import kuke.board.like.entity.ArticleLikeCount
 import kuke.board.like.repository.ArticleLikeCountRepository
@@ -13,7 +17,8 @@ import kotlin.jvm.optionals.getOrNull
 @Service
 class ArticleLikeService(
     val articleLikeRepository: ArticleLikeRepository,
-    val articleLikeCountRepository: ArticleLikeCountRepository
+    val articleLikeCountRepository: ArticleLikeCountRepository,
+    val outboxEventPublisher: OutboxEventPublisher
 ) {
     val snowflake = Snowflake()
 
@@ -28,9 +33,20 @@ class ArticleLikeService(
     }
 
     @Transactional
-    fun likePessimistickLock1(articleId: Long, userId: Long) {
+    fun likePessimisticLock1(articleId: Long, userId: Long) {
         try {
-            articleLikeRepository.save(
+
+            articleLikeRepository.findByArticleIdAndUserId(
+                articleId = articleId,
+                userId = userId
+            ).also {
+                if (it.isPresent) {
+                    println("ArticleLikeService.likePessimisticLock1:already exist")
+                    return
+                }
+            }
+
+            val articleLike = articleLikeRepository.save(
                 ArticleLike(
                     articleLikeId = snowflake.nextId(),
                     articleId = articleId,
@@ -48,6 +64,19 @@ class ArticleLikeService(
                     )
                 )
             }
+
+            outboxEventPublisher.publish(
+                eventType = EventType.ARTICLE_LIKED,
+                payload = ArticleLikedEventPayload(
+                    articleLikeId = articleLike.articleLikeId,
+                    articleId = articleLike.articleId,
+                    userId = articleLike.userId,
+                    createdAt = articleLike.createdAt,
+                    articleLikeCount = count(articleId)
+                ),
+                shardKey = articleId
+            )
+
         } catch (e: Exception) {
             println(e.message)
         }
@@ -61,6 +90,18 @@ class ArticleLikeService(
         ).ifPresent {
             articleLikeRepository.delete(it)
             articleLikeCountRepository.decrease(articleId)
+
+            outboxEventPublisher.publish(
+                eventType = EventType.ARTICLE_UNLIKED,
+                payload = ArticleUnlikedEventPayload(
+                    articleLikeId = it.articleLikeId,
+                    articleId = it.articleId,
+                    userId = it.userId,
+                    createdAt = it.createdAt,
+                    articleLikeCount = count(articleId)
+                ),
+                shardKey = articleId
+            )
         }
     }
 

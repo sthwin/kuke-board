@@ -8,11 +8,8 @@ data class ArticleViewCountRepository(
     val stringRedisTemplate: StringRedisTemplate
 ) {
     companion object {
-        // view::article::{articleId}::view_count
-        private const val KEY_FORMAT = "view::article::%s::view_count"
-
         fun generateKey(articleId: Long): String {
-            return String.format(KEY_FORMAT, articleId)
+            return "view::article::$articleId::view_count"
         }
     }
 

@@ -1,4 +1,4 @@
-package kuke.board.common.dataserializer;
+package kuke.board.common.snowflake;
 
 import java.util.random.RandomGenerator;
 

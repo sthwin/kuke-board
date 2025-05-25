@@ -1,4 +1,4 @@
-package kuke.board.common.dataserializer;
+package kuke.board.common.snowflake;
 
 import org.junit.jupiter.api.Test;
 

@@ -5,6 +5,7 @@ include(
     "common:snowflake",
     "common:data-serializer",
     "common:event",
+    "common:outbox-message-relay",
     "service",
     "service:article",
     "service:hot-article",

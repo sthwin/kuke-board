@@ -24,7 +24,7 @@ class ArticleDeletedEventHandler(
         }
     }
 
-    override fun supports(eventType: Event<ArticleDeletedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.ARTICLE_DELETED == eventType.type
     }
 

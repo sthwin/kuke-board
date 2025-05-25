@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 @Service
 class HotArticleService(
     val articleClient: ArticleClient,
-    val eventHandlers: List<EventHandler<EventPayload>>,
+    val eventHandlers: List<EventHandler<out EventPayload>>,
     val hotArticleScoreUpdater: HotArticleScoreUpdater,
     val hotArticleListRepository: HotArticleListRepository,
 ) {
@@ -40,8 +40,7 @@ class HotArticleService(
     }
 
     private fun findEventHandler(event: Event<EventPayload>): EventHandler<EventPayload>? {
-        return eventHandlers
-            .firstOrNull { it.supports(event) }
+        return eventHandlers.firstOrNull { it.supports(event) } as EventHandler<EventPayload>?
     }
 
     fun readAll(dateTime: LocalDateTime): List<HotArticleResponse> {

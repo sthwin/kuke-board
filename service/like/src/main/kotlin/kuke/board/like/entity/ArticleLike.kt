@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 data class ArticleLike(
     @Id
     val articleLikeId: Long,
-    val articleId: Long,
+    val articleId: Long, // shard key
     val userId: Long,
     val createdAt: LocalDateTime = LocalDateTime.now()
 ) {

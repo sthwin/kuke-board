@@ -22,7 +22,7 @@ class ArticleViewedEventHandler(
         )
     }
 
-    override fun supports(eventType: Event<ArticleViewedEventPayload>): Boolean {
+    override fun supports(eventType: Event<out EventPayload>): Boolean {
         return EventType.ARTICLE_VIEWED == eventType.type
     }
 
