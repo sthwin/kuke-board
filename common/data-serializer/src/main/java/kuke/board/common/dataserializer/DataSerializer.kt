@@ -17,11 +17,9 @@ import org.slf4j.LoggerFactory
  * - ISO-8601 날짜 형식 처리
  */
 object DataSerializer {
-    @PublishedApi
-    internal val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    @PublishedApi
-    internal val objectMapper: ObjectMapper = createObjectMapper()
+    val objectMapper: ObjectMapper = createObjectMapper()
 
     /**
      * 객체를 JSON 문자열로 직렬화
@@ -52,6 +50,7 @@ object DataSerializer {
     fun <T> deserialize(data: Any, clazz: Class<T>) =
         runCatching {
             objectMapper.convertValue(data, clazz) as T
+
         }.onFailure {
             logger.error("[deserialize] Failed to deserialize: data=$data, type=${clazz.name}", it)
         }.getOrThrow()

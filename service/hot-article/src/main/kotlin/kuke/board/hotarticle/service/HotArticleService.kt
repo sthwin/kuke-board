@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 @Service
 class HotArticleService(
     val articleClient: ArticleClient,
-    val eventHandlers: List<EventHandler<out EventPayload>>,
+    val eventHandlers: List<EventHandler<EventPayload>>,
     val hotArticleScoreUpdater: HotArticleScoreUpdater,
     val hotArticleListRepository: HotArticleListRepository,
 ) {
